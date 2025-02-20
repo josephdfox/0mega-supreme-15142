@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>US State Bills Data Visualization</title>
+  <style>
+    #map-container {
+      width: 100%;
+      max-width: 800px;
+      margin: auto;
+    }
+    .state {
+      cursor: pointer;
+    }
+    #tooltip {
+      position: absolute;
+      background: white;
+      border: 1px solid black;
+      padding: 5px;
+      display: none;
+      font-size: 12px;
+      pointer-events: none; /* Prevents tooltip from capturing mouse events */
+    }
+    .striped {
+      fill: url(#stripedPattern);
+    }
+  </style>
+</head>
+<body>
+  <h2>US State Bills Data Visualization</h2>
+  <div>
+    <label>
+      <input type="checkbox" id="yearToggle" /> Toggle Year (2023 / 2024)
+    </label>
+    <label>
+      <input type="checkbox" id="enactedToggle" /> Show Enacted Bills Only
+    </label>
+  </div>
+  <div id="map-container"></div>
+  <div id="tooltip"></div>
+  <script>
+    // Updated allBillsData with new values for 2023 and 2024.
+    const allBillsData = {
+      "2023": {
+        "AL": { "P": 0, "SA": 2, "SEC": 0 },
+        "AK": { "P": 0, "SA": 0, "SEC": 0 },
+        "AZ": { "P": 0, "SA": 0, "SEC": 0 },
+        "AR": { "P": 1, "SA": 2, "SEC": 0 },
+        "CA": { "P": 2, "SA": 7, "SEC": 0 },
+        "CO": { "P": 0, "SA": 0, "SEC": 0 },
+        "CT": { "P": 4, "SA": 4, "SEC": 1 },
+        "DE": { "P": 0, "SA": 0, "SEC": 0 },
+        "DC": { "P": 0, "SA": 0, "SEC": 0 },
+        "FL": { "P": 2, "SA": 4, "SEC": 2 },
+        "GA": { "P": 0, "SA": 1, "SEC": 0 },
+        "GU": { "P": 0, "SA": 0, "SEC": 0 },
+        "HI": { "P": 0, "SA": 2, "SEC": 0 },
+        "ID": { "P": 0, "SA": 0, "SEC": 0 },
+        "IL": { "P": 2, "SA": 6, "SEC": 0 },
+        "IN": { "P": 0, "SA": 1, "SEC": 0 },
+        "IA": { "P": 1, "SA": 0, "SEC": 0 },
+        "KS": { "P": 0, "SA": 0, "SEC": 1 },
+        "KY": { "P": 0, "SA": 0, "SEC": 0 },
+        "LA": { "P": 0, "SA": 0, "SEC": 1 },
+        "ME": { "P": 0, "SA": 0, "SEC": 0 },
+        "MD": { "P": 2, "SA": 2, "SEC": 0 },
+        "MA": { "P": 2, "SA": 1, "SEC": 0 },
+        "MI": { "P": 0, "SA": 1, "SEC": 0 },
+        "MN": { "P": 1, "SA": 2, "SEC": 1 },
+        "MS": { "P": 0, "SA": 1, "SEC": 1 },
+        "MO": { "P": 0, "SA": 0, "SEC": 0 },
+        "MT": { "P": 0, "SA": 0, "SEC": 1 },
+        "NE": { "P": 0, "SA": 2, "SEC": 0 },
+        "NV": { "P": 1, "SA": 0, "SEC": 0 },
+        "NH": { "P": 0, "SA": 0, "SEC": 0 },
+        "NJ": { "P": 4, "SA": 6, "SEC": 2 },
+        "NM": { "P": 0, "SA": 0, "SEC": 0 },
+        "NY": { "P": 5, "SA": 11, "SEC": 4 },
+        "NC": { "P": 0, "SA": 1, "SEC": 1 },
+        "ND": { "P": 0, "SA": 0, "SEC": 0 },
+        "MP": { "P": 0, "SA": 0, "SEC": 0 },
+        "OH": { "P": 0, "SA": 0, "SEC": 0 },
+        "OK": { "P": 0, "SA": 2, "SEC": 0 },
+        "OR": { "P": 0, "SA": 1, "SEC": 0 },
+        "PA": { "P": 0, "SA": 5, "SEC": 0 },
+        "PR": { "P": 1, "SA": 2, "SEC": 0 },
+        "RI": { "P": 0, "SA": 0, "SEC": 0 },
+        "AS": { "P": 0, "SA": 0, "SEC": 0 },
+        "SC": { "P": 0, "SA": 1, "SEC": 0 },
+        "SD": { "P": 0, "SA": 0, "SEC": 0 },
+        "TN": { "P": 0, "SA": 0, "SEC": 0 },
+        "TX": { "P": 0, "SA": 13, "SEC": 0 },
+        "UT": { "P": 0, "SA": 3, "SEC": 0 },
+        "VT": { "P": 0, "SA": 0, "SEC": 0 },
+        "VA": { "P": 0, "SA": 1, "SEC": 0 },
+        "VI": { "P": 0, "SA": 0, "SEC": 0 },
+        "WA": { "P": 2, "SA": 0, "SEC": 0 },
+        "WV": { "P": 2, "SA": 0, "SEC": 0 },
+        "WI": { "P": 0, "SA": 0, "SEC": 0 },
+        "WY": { "P": 0, "SA": 0, "SEC": 0 }
+      },
+      "2024": {
+        "AL": { "P": 6, "SA": 8, "SEC": 3 },
+        "AK": { "P": 0, "SA": 1, "SEC": 0 },
+        "AZ": { "P": 0, "SA": 2, "SEC": 1 },
+        "AR": { "P": 0, "SA": 0, "SEC": 0 },
+        "CA": { "P": 6, "SA": 8, "SEC": 3 },
+        "CO": { "P": 1, "SA": 1, "SEC": 0 },
+        "CT": { "P": 0, "SA": 0, "SEC": 0 },
+        "DE": { "P": 0, "SA": 1, "SEC": 0 },
+        "DC": { "P": 0, "SA": 0, "SEC": 0 },
+        "FL": { "P": 2, "SA": 2, "SEC": 6 },
+        "GA": { "P": 1, "SA": 4, "SEC": 3 },
+        "GU": { "P": 0, "SA": 0, "SEC": 0 },
+        "HI": { "P": 1, "SA": 2, "SEC": 0 },
+        "ID": { "P": 0, "SA": 2, "SEC": 0 },
+        "IL": { "P": 5, "SA": 3, "SEC": 5 },
+        "IN": { "P": 0, "SA": 2, "SEC": 7 },
+        "IA": { "P": 0, "SA": 1, "SEC": 4 },
+        "KS": { "P": 0, "SA": 0, "SEC": 2 },
+        "KY": { "P": 1, "SA": 4, "SEC": 2 },
+        "LA": { "P": 2, "SA": 1, "SEC": 0 },
+        "ME": { "P": 0, "SA": 0, "SEC": 0 },
+        "MD": { "P": 5, "SA": 3, "SEC": 2 },
+        "MA": { "P": 3, "SA": 2, "SEC": 0 },
+        "MI": { "P": 0, "SA": 1, "SEC": 1 },
+        "MN": { "P": 3, "SA": 3, "SEC": 5 },
+        "MS": { "P": 0, "SA": 4, "SEC": 3 },
+        "MO": { "P": 1, "SA": 3, "SEC": 2 },
+        "MT": { "P": 0, "SA": 0, "SEC": 0 },
+        "NE": { "P": 0, "SA": 0, "SEC": 0 },
+        "NV": { "P": 0, "SA": 0, "SEC": 0 },
+        "NH": { "P": 0, "SA": 1, "SEC": 0 },
+        "NJ": { "P": 0, "SA": 13, "SEC": 0 },
+        "NM": { "P": 0, "SA": 1, "SEC": 0 },
+        "NY": { "P": 1, "SA": 17, "SEC": 6 },
+        "NC": { "P": 0, "SA": 1, "SEC": 1 },
+        "ND": { "P": 0, "SA": 0, "SEC": 0 },
+        "MP": { "P": 0, "SA": 0, "SEC": 0 },
+        "OH": { "P": 0, "SA": 6, "SEC": 0 },
+        "OK": { "P": 0, "SA": 8, "SEC": 0 },
+        "OR": { "P": 0, "SA": 0, "SEC": 0 },
+        "PA": { "P": 0, "SA": 8, "SEC": 1 },
+        "PR": { "P": 1, "SA": 2, "SEC": 1 },
+        "RI": { "P": 0, "SA": 1, "SEC": 0 },
+        "AS": { "P": 0, "SA": 0, "SEC": 0 },
+        "SC": { "P": 0, "SA": 5, "SEC": 0 },
+        "SD": { "P": 0, "SA": 0, "SEC": 0 },
+        "TN": { "P": 0, "SA": 9, "SEC": 0 },
+        "TX": { "P": 0, "SA": 0, "SEC": 0 },
+        "UT": { "P": 2, "SA": 2, "SEC": 1 },
+        "VT": { "P": 0, "SA": 4, "SEC": 0 },
+        "VA": { "P": 0, "SA": 6, "SEC": 8 },
+        "VI": { "P": 0, "SA": 0, "SEC": 0 },
+        "WA": { "P": 1, "SA": 0, "SEC": 1 },
+        "WV": { "P": 1, "SA": 10, "SEC": 0 },
+        "WI": { "P": 0, "SA": 2, "SEC": 2 },
+        "WY": { "P": 1, "SA": 1, "SEC": 0 }
+      }
+    };
+
+    // Corrected enactedBillsData for 2023 remains unchanged; updated 2024 data below.
+    const enactedBillsData = {
+      "2023": {
+        "AL": { "P": 0, "SA": 0, "SEC": 0 },
+        "AK": { "P": 0, "SA": 0, "SEC": 0 },
+        "AZ": { "P": 0, "SA": 0, "SEC": 0 },
+        "AR": { "P": 1, "SA": 2, "SEC": 0 },
+        "CA": { "P": 0, "SA": 3, "SEC": 0 },
+        "CO": { "P": 0, "SA": 0, "SEC": 0 },
+        "CT": { "P": 0, "SA": 0, "SEC": 0 },
+        "DE": { "P": 0, "SA": 0, "SEC": 0 },
+        "DC": { "P": 0, "SA": 0, "SEC": 0 },
+        "FL": { "P": 0, "SA": 1, "SEC": 1 },
+        "GA": { "P": 0, "SA": 0, "SEC": 0 },
+        "HI": { "P": 0, "SA": 0, "SEC": 0 },
+        "ID": { "P": 0, "SA": 0, "SEC": 0 },
+        "IL": { "P": 0, "SA": 1, "SEC": 0 },
+        "IN": { "P": 0, "SA": 0, "SEC": 0 },
+        "IA": { "P": 0, "SA": 0, "SEC": 0 },
+        "KS": { "P": 0, "SA": 0, "SEC": 0 },
+        "KY": { "P": 0, "SA": 0, "SEC": 0 },
+        "LA": { "P": 0, "SA": 0, "SEC": 1 },
+        "ME": { "P": 0, "SA": 0, "SEC": 0 },
+        "MD": { "P": 0, "SA": 0, "SEC": 0 },
+        "MA": { "P": 0, "SA": 0, "SEC": 0 },
+        "MI": { "P": 0, "SA": 0, "SEC": 0 },
+        "MN": { "P": 0, "SA": 0, "SEC": 0 },
+        "MS": { "P": 0, "SA": 0, "SEC": 0 },
+        "MO": { "P": 0, "SA": 0, "SEC": 0 },
+        "MT": { "P": 0, "SA": 0, "SEC": 0 },
+        "NE": { "P": 0, "SA": 0, "SEC": 0 },
+        "NV": { "P": 0, "SA": 0, "SEC": 0 },
+        "NH": { "P": 0, "SA": 0, "SEC": 0 },
+        "NJ": { "P": 0, "SA": 1, "SEC": 0 },
+        "NM": { "P": 0, "SA": 0, "SEC": 0 },
+        "NY": { "P": 0, "SA": 1, "SEC": 0 },
+        "NC": { "P": 0, "SA": 0, "SEC": 0 },
+        "ND": { "P": 0, "SA": 0, "SEC": 0 },
+        "MP": { "P": 0, "SA": 0, "SEC": 0 },
+        "OH": { "P": 0, "SA": 0, "SEC": 0 },
+        "OK": { "P": 0, "SA": 0, "SEC": 0 },
+        "OR": { "P": 0, "SA": 0, "SEC": 0 },
+        "PA": { "P": 0, "SA": 0, "SEC": 0 },
+        "PR": { "P": 0, "SA": 0, "SEC": 0 },
+        "RI": { "P": 0, "SA": 0, "SEC": 0 },
+        "SC": { "P": 0, "SA": 0, "SEC": 0 },
+        "SD": { "P": 0, "SA": 0, "SEC": 0 },
+        "TN": { "P": 0, "SA": 0, "SEC": 0 },
+        "TX": { "P": 0, "SA": 2, "SEC": 0 },
+        "UT": { "P": 0, "SA": 2, "SEC": 0 },
+        "VT": { "P": 0, "SA": 0, "SEC": 0 },
+        "VA": { "P": 0, "SA": 0, "SEC": 0 },
+        "WA": { "P": 0, "SA": 0, "SEC": 0 },
+        "WV": { "P": 0, "SA": 0, "SEC": 0 },
+        "WI": { "P": 0, "SA": 0, "SEC": 0 },
+        "WY": { "P": 0, "SA": 0, "SEC": 0 }
+      },
+      "2024": {
+        "AL": { "P": 1, "SA": 0, "SEC": 0 },
+        "AK": { "P": 0, "SA": 0, "SEC": 0 },
+        "AZ": { "P": 0, "SA": 0, "SEC": 0 },
+        "AR": { "P": 0, "SA": 0, "SEC": 0 },
+        "CA": { "P": 0, "SA": 0, "SEC": 0 },
+        "CO": { "P": 0, "SA": 1, "SEC": 0 },
+        "CT": { "P": 0, "SA": 0, "SEC": 0 },
+        "DE": { "P": 0, "SA": 0, "SEC": 0 },
+        "DC": { "P": 0, "SA": 0, "SEC": 0 },
+        "FL": { "P": 0, "SA": 0, "SEC": 2 },
+        "GA": { "P": 0, "SA": 2, "SEC": 0 },
+        "GU": { "P": 0, "SA": 0, "SEC": 0 },
+        "HI": { "P": 0, "SA": 0, "SEC": 0 },
+        "ID": { "P": 0, "SA": 1, "SEC": 0 },
+        "IL": { "P": 0, "SA": 0, "SEC": 0 },
+        "IN": { "P": 0, "SA": 1, "SEC": 1 },
+        "IA": { "P": 0, "SA": 0, "SEC": 0 },
+        "KS": { "P": 0, "SA": 0, "SEC": 1 },
+        "KY": { "P": 0, "SA": 1, "SEC": 0 },
+        "LA": { "P": 1, "SA": 1, "SEC": 0 },
+        "ME": { "P": 0, "SA": 0, "SEC": 0 },
+        "MD": { "P": 2, "SA": 0, "SEC": 0 },
+        "MA": { "P": 0, "SA": 0, "SEC": 0 },
+        "MI": { "P": 0, "SA": 0, "SEC": 0 },
+        "MN": { "P": 1, "SA": 0, "SEC": 0 },
+        "MS": { "P": 0, "SA": 0, "SEC": 1 },
+        "MO": { "P": 0, "SA": 0, "SEC": 0 },
+        "MT": { "P": 0, "SA": 0, "SEC": 0 },
+        "NE": { "P": 0, "SA": 0, "SEC": 0 },
+        "NV": { "P": 0, "SA": 0, "SEC": 0 },
+        "NH": { "P": 0, "SA": 0, "SEC": 0 },
+        "NJ": { "P": 0, "SA": 0, "SEC": 0 },
+        "NM": { "P": 0, "SA": 0, "SEC": 0 },
+        "NY": { "P": 0, "SA": 0, "SEC": 0 },
+        "NC": { "P": 0, "SA": 0, "SEC": 0 },
+        "ND": { "P": 0, "SA": 0, "SEC": 0 },
+        "MP": { "P": 0, "SA": 0, "SEC": 0 },
+        "OH": { "P": 0, "SA": 0, "SEC": 0 },
+        "OK": { "P": 0, "SA": 1, "SEC": 0 },
+        "OR": { "P": 0, "SA": 0, "SEC": 0 },
+        "PA": { "P": 0, "SA": 0, "SEC": 0 },
+        "PR": { "P": 0, "SA": 0, "SEC": 0 },
+        "RI": { "P": 0, "SA": 0, "SEC": 0 },
+        "AS": { "P": 0, "SA": 0, "SEC": 0 },
+        "SC": { "P": 0, "SA": 1, "SEC": 0 },
+        "SD": { "P": 0, "SA": 0, "SEC": 0 },
+        "TN": { "P": 0, "SA": 2, "SEC": 0 },
+        "TX": { "P": 0, "SA": 0, "SEC": 0 },
+        "UT": { "P": 1, "SA": 2, "SEC": 0 },
+        "VT": { "P": 0, "SA": 0, "SEC": 0 },
+        "VA": { "P": 0, "SA": 0, "SEC": 2 },
+        "VI": { "P": 0, "SA": 0, "SEC": 0 },
+        "WA": { "P": 0, "SA": 0, "SEC": 0 },
+        "WV": { "P": 0, "SA": 1, "SEC": 0 },
+        "WI": { "P": 0, "SA": 0, "SEC": 0 },
+        "WY": { "P": 0, "SA": 0, "SEC": 0 }
+      }
+    };
+
+    const categoryColors = {
+      "P": "#FFFF00",
+      "SEC": "#00FF00",
+      "SA": "#A020F0"
+    };
+
+    // Update the state fills based on the selected year and toggle.
+    function updateMap() {
+      const year = document.getElementById("yearToggle").checked ? "2024" : "2023";
+      const isEnacted = document.getElementById("enactedToggle").checked;
+      const data = isEnacted ? enactedBillsData[year] : allBillsData[year];
+
+      document.querySelectorAll(".state").forEach(state => {
+        const stateId = state.id.toUpperCase();
+        const stateData = data && data[stateId] ? data[stateId] : null;
+
+        if (stateData) {
+          const values = Object.values(stateData);
+          if (values.every(v => v === 0)) {
+            state.style.fill = "#ffffff"; // White if all values are zero
+          } else {
+            const maxValue = Math.max(...values);
+            const maxCategories = Object.keys(stateData).filter(key => stateData[key] === maxValue);
+            state.style.fill = maxCategories.length > 1
+              ? "url(#stripedPattern)"
+              : categoryColors[maxCategories[0]];
+          }
+        } else {
+          state.style.fill = "#ffffff";
+        }
+      });
+    }
+
+    // Generate the HTML content for the tooltip.
+    function generateTooltipContent(stateId, year, stateData) {
+      return `<strong>${stateId} - ${year}</strong><br>
+              Privacy: ${stateData.P}<br>
+              Security: ${stateData.SEC}<br>
+              Safety: ${stateData.SA}`;
+    }
+
+    // Add event listeners to show/hide the tooltip on hover.
+    function addTooltipListeners() {
+      const tooltip = document.getElementById("tooltip");
+
+      document.querySelectorAll(".state").forEach(state => {
+        state.addEventListener("mouseover", function (e) {
+          const stateId = this.id.toUpperCase();
+          const year = document.getElementById("yearToggle").checked ? "2024" : "2023";
+          const isEnacted = document.getElementById("enactedToggle").checked;
+          const data = isEnacted ? enactedBillsData[year] : allBillsData[year];
+          const stateData = data && data[stateId] ? data[stateId] : null;
+
+          if (stateData) {
+            tooltip.innerHTML = generateTooltipContent(stateId, year, stateData);
+            tooltip.style.display = "block";
+          }
+        });
+
+        state.addEventListener("mousemove", function (e) {
+          tooltip.style.left = (e.pageX + 10) + "px";
+          tooltip.style.top  = (e.pageY + 10) + "px";
+        });
+
+        state.addEventListener("mouseout", function () {
+          tooltip.style.display = "none";
+        });
+      });
+    }
+
+    // Load the SVG map, update the states, and attach tooltip listeners.
+    fetch('map.svg')
+      .then(response => response.text())
+      .then(svgText => {
+        document.getElementById("map-container").innerHTML = svgText;
+
+        // Ensure each state has the "state" class.
+        document.querySelectorAll("#map-container path").forEach(state => {
+          if (!state.classList.contains("state")) {
+            state.classList.add("state");
+          }
+        });
+
+        updateMap();
+        addTooltipListeners();
+
+        // Update the map when toggles change.
+        document.getElementById("yearToggle").addEventListener("change", updateMap);
+        document.getElementById("enactedToggle").addEventListener("change", updateMap);
+      })
+      .catch(error => console.error("Error loading SVG:", error));
+  </script>
+</body>
+</html>
