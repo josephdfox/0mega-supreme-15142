@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US State Bills Data Visualization</title>
+    <style>
+        #map-container {
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+        }
+        .state {
+            cursor: pointer;
+        }
+        #tooltip {
+            position: absolute;
+            background: white;
+            border: 1px solid black;
+            padding: 5px;
+            display: none;
+            font-size: 12px;
+        }
+        .striped {
+            fill: url(#stripedPattern);
+        }
+    </style>
+</head>
+<body>
+    <h2>US State Bills Data Visualization</h2>
+    <label>
+        <input type="checkbox" id="yearToggle"> Toggle Year (2023 / 2024)
+    </label>
+    <div id="map-container"></div>
+    <div id="tooltip"></div>
+
+    <script>
+        const billsData = {"2023": {"AL": {"privacy": 0, "security": 0, "safety": 2}, "AK": {"privacy": 0, "security": 0, "safety": 0}, "AZ": {"privacy": 0, "security": 0, "safety": 0}, "AR": {"privacy": 1, "security": 0, "safety": 2}, "CA": {"privacy": 2, "security": 0, "safety": 7}, "CO": {"privacy": 0, "security": 0, "safety": 0}, "CT": {"privacy": 4, "security": 1, "safety": 4}, "DE": {"privacy": 0, "security": 0, "safety": 0}, "FL": {"privacy": 2, "security": 2, "safety": 4}, "GA": {"privacy": 0, "security": 0, "safety": 1}, "HI": {"privacy": 0, "security": 0, "safety": 2}, "ID": {"privacy": 0, "security": 0, "safety": 0}, "IL": {"privacy": 2, "security": 0, "safety": 6}, "IN": {"privacy": 0, "security": 0, "safety": 1}, "IA": {"privacy": 1, "security": 0, "safety": 0}, "KS": {"privacy": 0, "security": 1, "safety": 0}, "KY": {"privacy": 0, "security": 0, "safety": 0}, "LA": {"privacy": 0, "security": 1, "safety": 0}, "ME": {"privacy": 0, "security": 0, "safety": 0}, "MD": {"privacy": 2, "security": 0, "safety": 2}, "MA": {"privacy": 2, "security": 0, "safety": 1}, "MI": {"privacy": 0, "security": 0, "safety": 1}, "MN": {"privacy": 1, "security": 1, "safety": 2}, "MS": {"privacy": 0, "security": 1, "safety": 1}, "MO": {"privacy": 0, "security": 0, "safety": 0}, "MT": {"privacy": 0, "security": 1, "safety": 0}, "NE": {"privacy": 0, "security": 0, "safety": 2}, "NV": {"privacy": 1, "security": 0, "safety": 0}, "NH": {"privacy": 0, "security": 0, "safety": 0}, "NJ": {"privacy": 4, "security": 2, "safety": 6}, "NM": {"privacy": 0, "security": 0, "safety": 0}, "NY": {"privacy": 5, "security": 4, "safety": 11}, "NC": {"privacy": 0, "security": 1, "safety": 1}, "ND": {"privacy": 0, "security": 0, "safety": 0}, "OH": {"privacy": 0, "security": 0, "safety": 0}, "OK": {"privacy": 0, "security": 0, "safety": 2}, "OR": {"privacy": 0, "security": 0, "safety": 1}, "PA": {"privacy": 0, "security": 0, "safety": 5}, "RI": {"privacy": 0, "security": 0, "safety": 0}, "SC": {"privacy": 0, "security": 0, "safety": 1}, "SD": {"privacy": 0, "security": 0, "safety": 0}, "TN": {"privacy": 0, "security": 0, "safety": 0}, "TX": {"privacy": 0, "security": 0, "safety": 13}, "UT": {"privacy": 0, "security": 0, "safety": 3}, "VT": {"privacy": 0, "security": 0, "safety": 0}, "VA": {"privacy": 0, "security": 0, "safety": 1}, "WA": {"privacy": 2, "security": 0, "safety": 0}, "WV": {"privacy": 2, "security": 0, "safety": 0}, "WI": {"privacy": 0, "security": 0, "safety": 0}, "WY": {"privacy": 0, "security": 0, "safety": 0}}, "2024": {"AL": {"privacy": 1, "security": 0, "safety": 2}, "AK": {"privacy": 0, "security": 0, "safety": 1}, "AZ": {"privacy": 0, "security": 1, "safety": 2}, "AR": {"privacy": 0, "security": 0, "safety": 0}, "CA": {"privacy": 6, "security": 3, "safety": 8}, "CO": {"privacy": 1, "security": 0, "safety": 1}, "CT": {"privacy": 0, "security": 0, "safety": 0}, "DE": {"privacy": 0, "security": 0, "safety": 1}, "FL": {"privacy": 2, "security": 6, "safety": 2}, "GA": {"privacy": 1, "security": 3, "safety": 4}, "HI": {"privacy": 1, "security": 0, "safety": 2}, "ID": {"privacy": 0, "security": 0, "safety": 2}, "IL": {"privacy": 5, "security": 5, "safety": 3}, "IN": {"privacy": 0, "security": 7, "safety": 2}, "IA": {"privacy": 0, "security": 4, "safety": 1}, "KS": {"privacy": 0, "security": 2, "safety": 0}, "KY": {"privacy": 1, "security": 2, "safety": 4}, "LA": {"privacy": 2, "security": 0, "safety": 1}, "ME": {"privacy": 0, "security": 0, "safety": 0}, "MD": {"privacy": 5, "security": 2, "safety": 3}, "MA": {"privacy": 3, "security": 0, "safety": 2}, "MI": {"privacy": 0, "security": 1, "safety": 1}, "MN": {"privacy": 3, "security": 5, "safety": 3}, "MS": {"privacy": 0, "security": 3, "safety": 4}, "MO": {"privacy": 1, "security": 2, "safety": 3}, "MT": {"privacy": 0, "security": 0, "safety": 0}, "NE": {"privacy": 0, "security": 0, "safety": 0}, "NV": {"privacy": 0, "security": 0, "safety": 0}, "NH": {"privacy": 0, "security": 0, "safety": 0}, "NJ": {"privacy": 0, "security": 0, "safety": 0}, "NM": {"privacy": 0, "security": 0, "safety": 0}, "NY": {"privacy": 0, "security": 0, "safety": 0}, "NC": {"privacy": 0, "security": 0, "safety": 0}, "ND": {"privacy": 0, "security": 0, "safety": 0}, "OH": {"privacy": 0, "security": 0, "safety": 0}, "OK": {"privacy": 0, "security": 0, "safety": 0}, "OR": {"privacy": 0, "security": 0, "safety": 0}, "PA": {"privacy": 0, "security": 0, "safety": 0}, "RI": {"privacy": 0, "security": 0, "safety": 0}, "SC": {"privacy": 0, "security": 0, "safety": 0}, "SD": {"privacy": 0, "security": 0, "safety": 0}, "TN": {"privacy": 0, "security": 0, "safety": 0}, "TX": {"privacy": 0, "security": 0, "safety": 0}, "UT": {"privacy": 2, "security": 1, "safety": 2}, "VT": {"privacy": 0, "security": 0, "safety": 4}, "VA": {"privacy": 0, "security": 8, "safety": 6}, "WA": {"privacy": 1, "security": 1, "safety": 0}, "WV": {"privacy": 1, "security": 0, "safety": 10}, "WI": {"privacy": 0, "security": 2, "safety": 2}, "WY": {"privacy": 1, "security": 0, "safety": 1}}};
+
+        const categoryColors = {
+            "privacy": "#FFFF00",
+            "security": "#00FF00",
+            "safety": "#A020F0"
+        };
+
+        function updateMap(year) {
+            document.querySelectorAll(".state").forEach(state => {
+                const stateId = state.id;
+                const data = billsData[year][stateId];
+
+                if (data) {
+                    const values = Object.values(data);
+                    if (values.every(v => v === 0)) {
+                        state.style.fill = "#ffffff"; // White if all values are zero
+                    } else {
+                        const maxValue = Math.max(...values);
+                        const maxCategories = Object.keys(data).filter(key => data[key] === maxValue);
+                        
+                        if (maxCategories.length > 1) {
+                            state.classList.add("striped");
+                        } else {
+                            state.style.fill = categoryColors[maxCategories[0]];
+                        }
+                    }
+                } else {
+                    state.style.fill = "#ffffff"; // White if no data
+                }
+            });
+        }
+
+        function addTooltipListeners() {
+            const tooltip = document.getElementById("tooltip");
+
+            document.querySelectorAll(".state").forEach(state => {
+                state.addEventListener("mouseover", function (e) {
+                    const stateId = this.id;
+                    const year = document.getElementById("yearToggle").checked ? "2024" : "2023";
+                    const data = billsData[year][stateId];
+
+                    if (data) {
+                        tooltip.innerHTML = `<strong>${stateId} - ${year}</strong><br>
+                            Privacy: ${data.privacy}<br>
+                            Security: ${data.security}<br>
+                            Safety: ${data.safety}`;
+                        tooltip.style.display = "block";
+                    }
+                });
+
+                state.addEventListener("mousemove", function (e) {
+                    tooltip.style.left = (e.pageX + 10) + "px";
+                    tooltip.style.top  = (e.pageY + 10) + "px";
+                });
+
+                state.addEventListener("mouseout", function () {
+                    tooltip.style.display = "none";
+                });
+            });
+        }
+
+        fetch('map.svg')
+            .then(response => response.text())
+            .then(svgText => {
+                document.getElementById("map-container").innerHTML = svgText;
+
+                document.querySelectorAll("#map-container path").forEach(state => {
+                    if (!state.classList.contains("state")) {
+                        state.classList.add("state");
+                    }
+                });
+
+                updateMap("2023");
+                addTooltipListeners();
+
+                document.getElementById("yearToggle").addEventListener("change", function () {
+                    const year = this.checked ? "2024" : "2023";
+                    updateMap(year);
+                });
+            })
+            .catch(error => console.error("Error loading SVG:", error));
+    </script>
+</body>
+</html>
